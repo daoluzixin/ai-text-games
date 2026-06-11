@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI文游游戏厅</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --bg: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-chat: #0f3460;
+            --text: #eaeaea;
+            --text-muted: #a0a0b0;
+            --accent: #e94560;
+            --user-bubble: #6c5ce7;
+            --ai-bubble: #2d3748;
+            --border: rgba(255,255,255,0.08);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ========== 游戏列表页 ========== */
+        .page { display: none; height: 100vh; }
+        .page.active { display: flex; flex-direction: column; }
+
+        #games-page {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        .games-header {
+            padding: 40px 20px 20px;
+            text-align: center;
+        }
+
+        .games-header h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #a29bfe, #e94560);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .games-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .games-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+            align-content: start;
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-light);
+            box-shadow: 0 8px 32px rgba(108, 92, 231, 0.2);
+        }
+
+        .game-card:hover::before {
+            opacity: 1;
+        }
+
+        .game-card:active {
+            transform: translateY(-2px);
+        }
+
+        .game-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .game-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 12px;
+            border: 2px solid var(--border);
+            background: var(--bg);
+        }
+
+        .game-name {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .games-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+
+        .games-empty .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        /* ========== 聊天页 ========== */
+        #chat-page {
+            background: var(--bg);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .chat-header-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .chat-back {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+            color: var(--text);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .chat-back:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .chat-title {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-reset {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chat-reset:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message-row.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-row.system-msg {
+            justify-content: center;
+        }
+
+        .msg-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .msg-avatar.user-avatar {
+            background: var(--user-bubble);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.6;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            background: var(--user-bubble);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant {
+            background: var(--ai-bubble);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.system-msg {
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 8px;
+            max-width: 100%;
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            padding: 12px 16px;
+            background: var(--ai-bubble);
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            display: none;
+        }
+
+        .typing-indicator.show { display: block; }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-light);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-send {
+            width: 44px;
+            height: 44px;
+            border: none;
+            background: var(--primary);
+            border-radius: 50%;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .chat-send:hover {
+            background: var(--primary-light);
+            transform: scale(1.05);
+        }
+
+        .chat-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ========== 快捷操作 ========== */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            padding: 8px 16px;
+            overflow-x: auto;
+            background: var(--bg-card);
+        }
+
+        .quick-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            border-color: var(--primary-light);
+            color: var(--primary-light);
+        }
+
+        /* ========== 加载态 ========== */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 400px) {
+            .games-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                padding: 12px;
+            }
+            .game-card { padding: 20px 12px; }
+            .games-header { padding: 30px 16px 16px; }
+            .games-header h1 { font-size: 24px; }
+        }
+
+        /* ========== 上传相关 ========== */
+        .upload-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
+            transition: all 0.3s;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 28px rgba(108, 92, 231, 0.6);
+        }
+
+        .upload-fab:active {
+            transform: scale(0.95);
+        }
+
+        .upload-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .upload-modal.show {
+            display: flex;
+        }
+
+        .upload-box {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .upload-box h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .upload-box p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .upload-dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+
+        .upload-dropzone:hover,
+        .upload-dropzone.dragover {
+            border-color: var(--primary-light);
+            background: rgba(108, 92, 231, 0.05);
+        }
+
+        .upload-dropzone .drop-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .upload-dropzone .drop-text {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .upload-dropzone .drop-text em {
+            color: var(--primary-light);
+            font-style: normal;
+            text-decoration: underline;
+        }
+
+        .upload-progress {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .upload-progress.show {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 3px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .upload-status {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .upload-status.success {
+            color: #2ecc71;
+        }
+
+        .upload-status.error {
+            color: var(--accent);
+        }
+
+        .upload-close {
+            margin-top: 20px;
+            padding: 10px 24px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .upload-close:hover {
+            border-color: var(--text);
+            color: var(--text);
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<!-- 游戏列表页 -->
+<div id="games-page" class="page active">
+    <div class="games-header">
+        <h1>🎮 AI文游游戏厅</h1>
+        <p>选一个游戏开始冒险吧~</p>
+    </div>
+    <div class="games-grid" id="games-grid">
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>加载游戏中...</span>
+        </div>
+    </div>
+    <!-- 上传按钮 -->
+    <button class="upload-fab" onclick="openUpload()" title="添加新游戏">+</button>
+</div>
+
+<!-- 上传弹窗 -->
+<div class="upload-modal" id="upload-modal">
+    <div class="upload-box">
+        <h3>📤 添加新游戏</h3>
+        <p>从网盘下载 .docx 指令文件后，在这里上传即可</p>
+        <div class="upload-dropzone" id="upload-dropzone">
+            <div class="drop-icon">📄</div>
+            <div class="drop-text">拖拽文件到这里，或<em>点击选择</em></div>
+        </div>
+        <input type="file" id="file-input" accept=".docx" multiple style="display:none">
+        <div class="upload-progress" id="upload-progress">
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+            <div class="upload-status" id="upload-status">准备上传...</div>
+        </div>
+        <button class="upload-close" onclick="closeUpload()">关闭</button>
+    </div>
+</div>
+
+<!-- 聊天页 -->
+<div id="chat-page" class="page">
+    <div class="chat-header">
+        <button class="chat-back" onclick="goBack()">←</button>
+        <img class="chat-header-avatar" id="chat-header-avatar" src="" style="display:none">
+        <div class="chat-title" id="chat-title">游戏</div>
+        <button class="chat-reset" onclick="resetChat()">重新开始</button>
+    </div>
+    <div class="quick-actions">
+        <button class="quick-btn" onclick="sendQuick('开始游戏')">开始游戏</button>
+        <button class="quick-btn" onclick="sendQuick('介绍规则')">介绍规则</button>
+        <button class="quick-btn" onclick="sendQuick('继续')">继续</button>
+        <button class="quick-btn" onclick="sendQuick('查看状态')">查看状态</button>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+        <div class="message system-msg">点击下方「开始游戏」或直接输入内容开始~</div>
+    </div>
+    <div class="typing-indicator" id="typing">
+        <span></span><span></span><span></span>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chat-input" 
+               placeholder="输入你的选择..." 
+               onkeydown="if(event.key==='Enter')sendMessage()">
+        <button class="chat-send" id="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // 状态
+    // ============================================================
+    let currentGameId = null;
+    let currentGameName = '';
+    let sessionId = localStorage.getItem('session_id') || generateId();
+    localStorage.setItem('session_id', sessionId);
+
+    let isStreaming = false;
+
+    // 游戏图标池（无头像时的回退方案）
+    const icons = ['🏰', '👑', '⚔️', '🌸', '🎭', '💫', '🔮', '🌙', '🦋', '🎪', 
+                   '🗡️', '💎', '🌺', '🎲', '🏯', '👸', '🐉', '🌊', '🔥', '❄️',
+                   '🎵', '🌹', '🦊', '🐺', '🌿', '⭐', '🎀', '🏹', '📜', '🗝️'];
+
+    // 当前游戏的头像 URL
+    let currentAvatarUrl = null;
+
+    function generateId() {
+        return 'xxxx-xxxx-xxxx'.replace(/x/g, () => 
+            Math.floor(Math.random() * 16).toString(16));
+    }
+
+    // ============================================================
+    // Mock 模式（无后端时使用本地数据预览）
+    // ============================================================
+    const MOCK_MODE = !window.location.port || window.location.port === '8080';
+
+    const MOCK_GAMES = [
+        { id: 'game1', name: '血族王子的古堡', avatar: '/avatars/avatar_01_vampire.svg' },
+        { id: 'game2', name: '狐仙小姐的奇遇', avatar: '/avatars/avatar_02_foxspirit.svg' },
+        { id: 'game3', name: '星空法师学院', avatar: '/avatars/avatar_03_wizard.svg' },
+        { id: 'game4', name: '圣剑骑士传说', avatar: '/avatars/avatar_04_knight.svg' },
+        { id: 'game5', name: '月下猫妖物语', avatar: '/avatars/avatar_05_catboy.svg' },
+        { id: 'game6', name: '深海人鱼之歌', avatar: '/avatars/avatar_06_mermaid.svg' },
+    ];
+
+    const MOCK_REPLIES = {
+        'game1': [
+            '......你终于醒了。\n\n月光透过彩绘玻璃窗洒落在你身上，你发现自己躺在一张华丽的天鹅绒长椅上。空气中弥漫着玫瑰与古老木头的气息。\n\n我站在窗边，背对着你。听到你的动静，我缓缓转过身——你看到一双猩红色的眼眸在黑暗中微微发光。\n\n"迷路的旅人......已经很久没有人闯入我的领地了。"\n\n你想要：\n1. 询问这里是哪里\n2. 尝试站起来逃跑\n3. 冷静地打量面前的人',
+            '"有趣。" 我微微扬起嘴角，露出一丝意味深长的笑。\n\n我向你走近一步，斗篷在月光下如暗夜的翅膀般展开。"这里是暮光古堡，已经有三百年没有活人踏入了。"\n\n我在你面前停下，俯身凝视着你的眼睛。"你不害怕吗？还是说......你根本不知道自己面对的是什么？"',
+        ],
+        'game2': [
+            '"哎呀呀~ 你醒啦！"\n\n你睁开眼睛，发现自己躺在一片柔软的落叶上。面前蹲着一个少女，橘红色的长发间......等等，那是耳朵吗？！毛茸茸的狐狸耳朵正好奇地朝你抖动着。\n\n"人类迷路跑到我的竹林里来了呢~ 真是少见！" 她歪着头看你，金色的眼睛亮闪闪的。\n\n"我叫小狸！你呢你呢？要不要吃个烤红薯？刚烤好的哦~"\n\n你想要：\n1. 接过红薯吃（真的好香）\n2. 惊慌地问她是什么\n3. 假装淡定自我介绍',
+            '"嘿嘿，选了红薯对吧~ 眼光不错！"\n\n她从身后变出一个冒着热气的烤红薯递给你，尾巴开心地摇来摇去——等等，尾巴？！一条蓬松的大尾巴在她身后晃来晃去。\n\n"好吃吧好吃吧？这是用狐火慢慢烤的，可香了~" 她眯着眼满足地笑着，然后突然凑近你的脸。\n\n"对了对了，你是怎么进来的呀？这片竹林可是有结界的呢......"',
+        ],
+        'game3': [
+            '欢迎来到星空法师学院。\n\n你推开那扇沉重的橡木大门，眼前的景象让你屏住了呼吸——穹顶上是流动的星河，成百上千本书籍在空中自由飞翔，走廊的火把燃烧着变幻色彩的魔法火焰。\n\n"啊哈！新来的小家伙！"\n\n一位银发长须的老者从一本巨大的飞行书上跳下来，星辰图案的长袍在空中飘动。他的眼中似乎真的有星光在闪烁。\n\n"我是梅林院长。在正式入学之前，让我问你一个问题——如果你面前有两扇门，一扇永远说真话，一扇永远说假话......" 他狡黠地眨眨眼，"你会选择哪扇门？"',
+        ],
+        'game4': [
+            '黎明的第一缕光芒穿透云层，照在你银白色的铠甲上。\n\n你站在王都的城墙上，远眺着地平线。那里，黑暗军团的旗帜如同乌云般铺展开来。三天后，他们就会抵达城下。\n\n你握紧了手中的圣剑，剑刃上泛起淡淡的蓝色光芒。作为骑士团唯一幸存的圣骑士，守护这座城市的重任落在了你的肩上。\n\n"指挥官。" 身后传来副官的声音，"城中物资还能支撑五天，但士兵们的士气......"\n\n你转过身：\n1. "召集所有人，我有话要说。"\n2. "派出斥候，我需要了解敌军详情。"\n3. "先检查城防工事。"',
+        ],
+        'game5': [
+            '"喵~" \n\n月亮又圆又大，挂在屋顶上方。你坐在瓦片上，耳朵上的短毛在夜风中微微颤动。今晚的夜色真好，适合出去逛逛。\n\n你是月下猫妖——白天是普通的黑猫，到了夜晚就会变成半人半猫的模样。虽然修炼了才百来年，法力不算强，但胜在身手灵活、好奇心旺盛。\n\n今晚你感觉到了一股奇怪的气息从城东的方向传来......那边是废弃的旧神社。\n\n你：\n1. 循着气息去旧神社看看\n2. 先去逛夜市（肚子饿了）\n3. 去找隔壁的老狸猫打听消息',
+        ],
+        'game6': [
+            '你缓缓睁开眼睛。\n\n四周是温柔的蓝绿色光芒，无数细小的气泡从你身边升起。你......在水里？但是你能呼吸？！\n\n"你醒了......" \n\n一个温柔的声音传来。你转头看去——一位有着碧绿长发的少女正微笑着看着你。她的肩膀上闪烁着细密的鳞片，腰部以下是一条优雅的鱼尾。\n\n"别害怕。" 她轻声说，"你落水的时候我救了你。这里是海底宫殿......我给你施了水息术，所以你能在水中呼吸。"\n\n她歪了歪头，珍珠耳坠轻轻晃动。"我叫珊瑚，你呢？"\n\n你想：\n1. 告诉她你的名字\n2. 惊慌失措地四处张望\n3. "我......是在做梦吗？"',
+        ],
+    };
+
+    let mockReplyIndex = {};
+
+    // ============================================================
+    // 游戏列表
+    // ============================================================
+    async function loadGames() {
+        if (MOCK_MODE) {
+            renderGames(MOCK_GAMES);
+            return;
+        }
+        try {
+            const res = await fetch('/api/games');
+            const games = await res.json();
+            renderGames(games);
+        } catch (e) {
+            document.getElementById('games-grid').innerHTML = `
+                <div class="games-empty">
+                    <div class="empty-icon">😵</div>
+                    <p>加载失败，请检查服务是否运行</p>
+                </div>`;
+        }
+    }
+
+    function renderGames(games) {
+        const grid = document.getElementById('games-grid');
+        if (games.length === 0) {
+            grid.innerHTML = `
+                <div class="games-empty">
+                    <div class="empty-icon">📂</div>
+                    <p>还没有游戏哦~<br>往 games/ 目录丢 .docx 文件就能添加新游戏</p>
+                </div>`;
+            return;
+        }
+
+        grid.innerHTML = games.map((game, i) => {
+            const avatarHtml = game.avatar
+                ? `<img class="game-avatar" src="${game.avatar}" alt="${escapeHtml(game.name)}">`
+                : `<span class="game-icon">${icons[i % icons.length]}</span>`;
+            return `
+                <div class="game-card" onclick="startGame('${game.id}', '${escapeHtml(game.name)}', ${game.avatar ? "'" + game.avatar + "'" : 'null'})">
+                    ${avatarHtml}
+                    <div class="game-name">${escapeHtml(game.name)}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ============================================================
+    // 进入游戏
+    // ============================================================
+    function startGame(gameId, gameName, avatarUrl) {
+        currentGameId = gameId;
+        currentGameName = gameName;
+        currentAvatarUrl = avatarUrl;
+
+        document.getElementById('chat-title').textContent = gameName;
+
+        // 设置聊天页头部头像
+        const headerAvatar = document.getElementById('chat-header-avatar');
+        if (avatarUrl) {
+            headerAvatar.src = avatarUrl;
+            headerAvatar.style.display = 'block';
+        } else {
+            headerAvatar.style.display = 'none';
+        }
+
+        document.getElementById('chat-messages').innerHTML = 
+            '<div class="message-row system-msg"><div class="message system-msg">点击下方「开始游戏」或直接输入内容开始~</div></div>';
+        
+        // 切换页面
+        document.getElementById('games-page').classList.remove('active');
+        document.getElementById('chat-page').classList.add('active');
+
+        // 生成新 session（每次进入游戏重新开始）
+        sessionId = generateId();
+        localStorage.setItem('session_id', sessionId);
+    }
+
+    function goBack() {
+        document.getElementById('chat-page').classList.remove('active');
+        document.getElementById('games-page').classList.add('active');
+        currentGameId = null;
+    }
+
+    // ============================================================
+    // 聊天
+    // ============================================================
+    async function sendMessage() {
+        if (isStreaming) return;
+
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        input.value = '';
+        addMessage('user', text);
+        
+        isStreaming = true;
+        document.getElementById('send-btn').disabled = true;
+        document.getElementById('typing').classList.add('show');
+
+        // Mock 模式：模拟流式打字效果
+        if (MOCK_MODE) {
+            await mockStreamReply();
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    game_id: currentGameId,
+                    message: text,
+                }),
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || '请求失败');
+            }
+
+            // 流式读取
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let aiMessage = '';
+            let messageEl = null;
+
+            document.getElementById('typing').classList.remove('show');
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (!line.startsWith('data: ')) continue;
+                    const data = line.slice(6);
+
+                    if (data === '[DONE]') break;
+                    if (data.startsWith('[ERROR]')) {
+                        addMessage('system-msg', '\u26a0\ufe0f ' + data.slice(8));
+                        break;
+                    }
+
+                    aiMessage += data;
+                    if (!messageEl) {
+                        messageEl = addMessage('assistant', aiMessage);
+                    } else {
+                        messageEl.textContent = aiMessage;
+                    }
+                    scrollToBottom();
+                }
+            }
+        } catch (e) {
+            document.getElementById('typing').classList.remove('show');
+            addMessage('system-msg', '\u26a0\ufe0f 出错了: ' + e.message);
+        } finally {
+            isStreaming = false;
+            document.getElementById('send-btn').disabled = false;
+            scrollToBottom();
+        }
+    }
+
+    // Mock 流式打字效果
+    async function mockStreamReply() {
+        const replies = MOCK_REPLIES[currentGameId] || ['（这个世界还在构建中......请稍后再来探索吧~）'];
+        if (!mockReplyIndex[currentGameId]) mockReplyIndex[currentGameId] = 0;
+        
+        const idx = mockReplyIndex[currentGameId] % replies.length;
+        mockReplyIndex[currentGameId]++;
+        const fullText = replies[idx];
+
+        // 模拟思考延迟
+        await new Promise(r => setTimeout(r, 800));
+        document.getElementById('typing').classList.remove('show');
+
+        // 逐字打出
+        let messageEl = null;
+        let displayed = '';
+        for (let i = 0; i < fullText.length; i++) {
+            displayed += fullText[i];
+            if (!messageEl) {
+                messageEl = addMessage('assistant', displayed);
+            } else {
+                messageEl.textContent = displayed;
+            }
+            scrollToBottom();
+            // 随机打字速度，遇到标点慢一些
+            const char = fullText[i];
+            const delay = '，。！？、\n'.includes(char) ? 80 : (Math.random() * 25 + 15);
+            await new Promise(r => setTimeout(r, delay));
+        }
+
+        isStreaming = false;
+        document.getElementById('send-btn').disabled = false;
+        scrollToBottom();
+    }
+
+    function sendQuick(text) {
+        document.getElementById('chat-input').value = text;
+        sendMessage();
+    }
+
+    function addMessage(role, content) {
+        const container = document.getElementById('chat-messages');
+
+        // 创建消息行
+        const row = document.createElement('div');
+        row.className = `message-row ${role}`;
+
+        // 消息气泡
+        const bubble = document.createElement('div');
+        bubble.className = `message ${role}`;
+        bubble.textContent = content;
+
+        if (role === 'system-msg') {
+            row.appendChild(bubble);
+        } else if (role === 'assistant') {
+            // AI 消息左侧显示头像
+            if (currentAvatarUrl) {
+                const avatar = document.createElement('img');
+                avatar.className = 'msg-avatar';
+                avatar.src = currentAvatarUrl;
+                row.appendChild(avatar);
+            }
+            row.appendChild(bubble);
+        } else {
+            // 用户消息右侧显示小圆圈
+            const avatar = document.createElement('div');
+            avatar.className = 'msg-avatar user-avatar';
+            avatar.textContent = '👤';
+            row.appendChild(bubble);
+            row.appendChild(avatar);
+        }
+
+        container.appendChild(row);
+        scrollToBottom();
+        return bubble;
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('chat-messages');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function resetChat() {
+        if (isStreaming) return;
+        sessionId = generateId();
+        localStorage.setItem('session_id', sessionId);
+        document.getElementById('chat-messages').innerHTML = 
+            '<div class="message-row system-msg"><div class="message system-msg">已重新开始！点击「开始游戏」继续~</div></div>';
+    }
+
+    // ============================================================
+    // 上传功能
+    // ============================================================
+    const dropzone = document.getElementById('upload-dropzone');
+    const fileInput = document.getElementById('file-input');
+    const uploadModal = document.getElementById('upload-modal');
+
+    function openUpload() {
+        uploadModal.classList.add('show');
+        resetUploadUI();
+    }
+
+    function closeUpload() {
+        uploadModal.classList.remove('show');
+        loadGames(); // 关闭时刷新游戏列表
+    }
+
+    function resetUploadUI() {
+        document.getElementById('upload-progress').classList.remove('show');
+        document.getElementById('upload-status').className = 'upload-status';
+        document.getElementById('upload-status').textContent = '准备上传...';
+        document.getElementById('progress-fill').style.width = '0%';
+    }
+
+    // 点击选择文件
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    // 拖拽效果
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.docx'));
+        if (files.length > 0) uploadFiles(files);
+        else alert('请选择 .docx 格式的文件哦~');
+    });
+
+    // 文件选择
+    fileInput.addEventListener('change', () => {
+        const files = Array.from(fileInput.files);
+        if (files.length > 0) uploadFiles(files);
+        fileInput.value = ''; // 重置，允许重复选择同一文件
+    });
+
+    // 批量上传
+    async function uploadFiles(files) {
+        const progressEl = document.getElementById('upload-progress');
+        const statusEl = document.getElementById('upload-status');
+        const fillEl = document.getElementById('progress-fill');
+
+        progressEl.classList.add('show');
+        let success = 0;
+        let failed = 0;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const percent = Math.round(((i) / files.length) * 100);
+            fillEl.style.width = percent + '%';
+            statusEl.textContent = `正在上传 (${i+1}/${files.length}): ${file.name}`;
+            statusEl.className = 'upload-status';
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || '上传失败');
+                }
+
+                success++;
+            } catch (e) {
+                failed++;
+                console.error(`上传失败 ${file.name}:`, e);
+            }
+        }
+
+        fillEl.style.width = '100%';
+
+        if (failed === 0) {
+            statusEl.textContent = `✅ 全部上传成功！添加了 ${success} 个新游戏`;
+            statusEl.className = 'upload-status success';
+        } else {
+            statusEl.textContent = `完成：成功 ${success} 个，失败 ${failed} 个`;
+            statusEl.className = 'upload-status error';
+        }
+    }
+
+    // 点击弹窗背景关闭
+    uploadModal.addEventListener('click', (e) => {
+        if (e.target === uploadModal) closeUpload();
+    });
+
+    // ============================================================
+    // 初始化
+    // ============================================================
+    loadGames();
+</script>
+</body>
+</html>

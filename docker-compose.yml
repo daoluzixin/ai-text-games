@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  ai-text-games:
+    build: .
+    container_name: ai-text-games
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # 把游戏 docx 文件目录挂载进容器
+      # 你只需要往这个目录丢 docx 文件，刷新页面就能看到新游戏
+      - ./games:/app/games
+    env_file:
+      - .env
+    environment:
+      - GAMES_DIR=/app/games
