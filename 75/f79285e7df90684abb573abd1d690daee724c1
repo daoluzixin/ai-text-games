@@ -1,0 +1,14 @@
+.env.example
+  h_b78a316c9f6996 1-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "2.0.0",
+  "base_commit_sha": "75f79285e7df90684abb573abd1d690daee724c1",
+  "prompts": {},
+  "humans": {
+    "h_b78a316c9f6996": {
+      "author": "fengyunhao <fengyunhao@meituan.com>"
+    }
+  }
+}
