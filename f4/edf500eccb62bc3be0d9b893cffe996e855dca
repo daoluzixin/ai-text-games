@@ -1,0 +1,12 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "2.0.0",
+  "base_commit_sha": "f4edf500eccb62bc3be0d9b893cffe996e855dca",
+  "prompts": {},
+  "humans": {
+    "h_b78a316c9f6996": {
+      "author": "fengyunhao <fengyunhao@meituan.com>"
+    }
+  }
+}
