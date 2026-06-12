@@ -1,5 +1,23 @@
+# AI 文游游戏厅 —— Python 依赖
+# 安装: pip install -r requirements.txt
+#
+# 注：os/json/uuid/sqlite3/hashlib/pathlib/typing/contextlib
+#     均为 Python 标准库，无需安装。
+
+# Web 框架
 fastapi>=0.104.0
+# ASGI 服务器（server.py 末尾用 uvicorn.run 启动）
 uvicorn>=0.24.0
-python-docx>=1.1.0
-openai>=1.10.0
+# 文件上传支持（/api/upload 用 UploadFile/File 上传 .docx）
+python-multipart>=0.0.6
+# 数据模型校验（代码直接 import BaseModel；同时是 fastapi 依赖）
+pydantic>=2.0.0
+
+# 读取 .env 配置（API_KEY / API_BASE_URL / MODEL_NAME 等）
 python-dotenv>=1.0.0
+
+# 解析 games/ 目录下的 .docx 游戏指令文件
+python-docx>=1.1.0
+
+# 调用 DeepSeek（OpenAI 兼容接口），含流式对话
+openai>=1.10.0

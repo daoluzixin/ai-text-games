@@ -22,3 +22,9 @@ Thumbs.db
 
 # Uploaded games (user data)
 games/*.docx
+
+# Session history database (private chat data)
+sessions.db
+sessions.db-journal
+sessions.db-wal
+sessions.db-shm

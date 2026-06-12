@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    font-family: "PingFang SC", "Hiragino Sans GB", "Noto Serif SC", "Source Han Serif CN", "Microsoft YaHei", serif;
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--frame-text, #3d3250);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    letter-spacing: 0.02em;
+    background: transparent;
+    overflow: hidden; /* 由父容器控制滚动 */
+    transition: color 0.3s;
+}
+
+/* ---- 主题变量 ---- */
+:root, [data-theme="lavender"] {
+    --frame-text: #3d3250;
+    --frame-narration: #3d3250;
+    --frame-dialogue-bg: linear-gradient(135deg, #faf5ff 0%, #fef9ff 100%);
+    --frame-dialogue-border: #d6bcfa;
+    --frame-speaker: #7c3aed;
+    --frame-status-bg: linear-gradient(135deg, #f7efff 0%, #fdf5fb 100%);
+    --frame-status-border: #ecd9f7;
+    --frame-status-title: #6d28d9;
+    --frame-status-label: #8b7aa3;
+    --frame-status-value: #3d3250;
+    --frame-status-bar-track: #ede3f7;
+    --frame-status-bar-fill: linear-gradient(90deg, #c084fc 0%, #f472b6 100%);
+    --frame-status-bar-num: #7c3aed;
+    --frame-choice-bg: linear-gradient(135deg, #f8f0ff 0%, #fff5fb 100%);
+    --frame-choice-border: #e8d5f5;
+    --frame-choice-hover-border: #c084fc;
+    --frame-choice-hover-bg: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 100%);
+    --frame-choice-selected-border: #a855f7;
+    --frame-choice-selected-bg: linear-gradient(135deg, #e9d5ff 0%, #fce7f3 100%);
+    --frame-choice-id: #7c3aed;
+    --frame-choice-title: #7c6b8a;
+}
+[data-theme="gothic"] {
+    --frame-text: #e8dff0;
+    --frame-narration: #e8dff0;
+    --frame-dialogue-bg: linear-gradient(135deg, #1f1530 0%, #2a1a3a 100%);
+    --frame-dialogue-border: #6d28d9;
+    --frame-speaker: #a78bfa;
+    --frame-status-bg: linear-gradient(135deg, #1a1025 0%, #251535 100%);
+    --frame-status-border: #4c1d95;
+    --frame-status-title: #a78bfa;
+    --frame-status-label: #9b8ab0;
+    --frame-status-value: #e8dff0;
+    --frame-status-bar-track: #2d1a45;
+    --frame-status-bar-fill: linear-gradient(90deg, #8b5cf6 0%, #dc2626 100%);
+    --frame-status-bar-num: #a78bfa;
+    --frame-choice-bg: linear-gradient(135deg, #1f1530 0%, #2a1020 100%);
+    --frame-choice-border: #4c1d95;
+    --frame-choice-hover-border: #8b5cf6;
+    --frame-choice-hover-bg: linear-gradient(135deg, #2d1a45 0%, #3d1030 100%);
+    --frame-choice-selected-border: #8b5cf6;
+    --frame-choice-selected-bg: linear-gradient(135deg, #3d1a55 0%, #4d1030 100%);
+    --frame-choice-id: #a78bfa;
+    --frame-choice-title: #9b8ab0;
+}
+[data-theme="cyber"] {
+    --frame-text: #e0f2fe;
+    --frame-narration: #e0f2fe;
+    --frame-dialogue-bg: linear-gradient(135deg, #1e1b3a 0%, #0f172a 100%);
+    --frame-dialogue-border: #06b6d4;
+    --frame-speaker: #22d3ee;
+    --frame-status-bg: linear-gradient(135deg, #111827 0%, #1e1b3a 100%);
+    --frame-status-border: #0e7490;
+    --frame-status-title: #22d3ee;
+    --frame-status-label: #7dd3fc;
+    --frame-status-value: #e0f2fe;
+    --frame-status-bar-track: #1e3a5f;
+    --frame-status-bar-fill: linear-gradient(90deg, #06b6d4 0%, #f0abfc 100%);
+    --frame-status-bar-num: #22d3ee;
+    --frame-choice-bg: linear-gradient(135deg, #1e1b3a 0%, #0f172a 100%);
+    --frame-choice-border: #0e7490;
+    --frame-choice-hover-border: #06b6d4;
+    --frame-choice-hover-bg: linear-gradient(135deg, #164e63 0%, #1e1b3a 100%);
+    --frame-choice-selected-border: #06b6d4;
+    --frame-choice-selected-bg: linear-gradient(135deg, #164e63 0%, #2d1a55 100%);
+    --frame-choice-id: #22d3ee;
+    --frame-choice-title: #7dd3fc;
+}
+[data-theme="forest"] {
+    --frame-text: #1f4a3a;
+    --frame-narration: #1f4a3a;
+    --frame-dialogue-bg: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+    --frame-dialogue-border: #6ee7b7;
+    --frame-speaker: #059669;
+    --frame-status-bg: linear-gradient(135deg, #ecfdf5 0%, #fefce8 100%);
+    --frame-status-border: #a7f3d0;
+    --frame-status-title: #059669;
+    --frame-status-label: #6b9080;
+    --frame-status-value: #1f4a3a;
+    --frame-status-bar-track: #d1fae5;
+    --frame-status-bar-fill: linear-gradient(90deg, #10b981 0%, #fbbf24 100%);
+    --frame-status-bar-num: #059669;
+    --frame-choice-bg: linear-gradient(135deg, #ecfdf5 0%, #fefce8 100%);
+    --frame-choice-border: #a7f3d0;
+    --frame-choice-hover-border: #10b981;
+    --frame-choice-hover-bg: linear-gradient(135deg, #d1fae5 0%, #fef9c3 100%);
+    --frame-choice-selected-border: #10b981;
+    --frame-choice-selected-bg: linear-gradient(135deg, #a7f3d0 0%, #fef9c3 100%);
+    --frame-choice-id: #059669;
+    --frame-choice-title: #6b9080;
+}
+
+/* ---- 纯文本兜底段落 ---- */
+.plain-text {
+    margin: 0.7em 0;
+    line-height: 1.9;
+    color: var(--frame-text, #3d3250);
+}
+.plain-text:first-child { margin-top: 0; }
+.plain-text:last-child { margin-bottom: 0; }
+
+/* ========== XML 渲染专用样式 ========== */
+.xml-narration {
+    margin: 0.7em 0;
+    line-height: 1.9;
+    color: var(--frame-narration, #3d3250);
+}
+.xml-dialogue {
+    margin: 0.8em 0;
+    padding: 0.6em 1em;
+    background: var(--frame-dialogue-bg);
+    border-left: 3px solid var(--frame-dialogue-border);
+    border-radius: 0 10px 10px 0;
+}
+.xml-dialogue .speaker {
+    font-weight: 700;
+    color: var(--frame-speaker);
+    margin-right: 0.5em;
+}
+.xml-dialogue .speaker::after {
+    content: '：';
+}
+
+/* ---- 状态卡片（升级版：分组 + 图标 + 进度条） ---- */
+.xml-status {
+    margin: 0.9em 0;
+    padding: 0.9em 1.1em;
+    background: var(--frame-status-bg);
+    border: 1px solid var(--frame-status-border);
+    border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+.xml-status + .xml-status { margin-top: 0.6em; }
+.xml-status-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    font-weight: 700;
+    color: var(--frame-status-title);
+    margin-bottom: 0.7em;
+    font-size: 0.95em;
+    padding-bottom: 0.5em;
+    border-bottom: 1px dashed var(--frame-status-border);
+}
+.xml-status-title .title-icon { font-size: 1.05em; }
+
+.xml-status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin: 0.5em 0;
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+.xml-status-item .item-icon {
+    flex-shrink: 0;
+    width: 1.4em;
+    text-align: center;
+    font-size: 1em;
+}
+.xml-status-item .label {
+    color: var(--frame-status-label);
+    flex-shrink: 0;
+    min-width: 4.5em;
+}
+.xml-status-item .label::after { content: '：'; }
+.xml-status-item .value {
+    color: var(--frame-status-value);
+    font-weight: 600;
+}
+
+/* ---- 进度条型 item ---- */
+.xml-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin: 0.6em 0;
+    font-size: 0.9em;
+}
+.xml-status-bar .item-icon {
+    flex-shrink: 0;
+    width: 1.4em;
+    text-align: center;
+}
+.xml-status-bar .label {
+    color: var(--frame-status-label);
+    flex-shrink: 0;
+    min-width: 4.5em;
+}
+.xml-status-bar .label::after { content: '：'; }
+.xml-status-bar .bar-track {
+    flex: 1;
+    height: 0.7em;
+    background: var(--frame-status-bar-track);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+.xml-status-bar .bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--frame-status-bar-fill);
+    transition: width 0.4s ease;
+}
+.xml-status-bar .bar-num {
+    flex-shrink: 0;
+    min-width: 3em;
+    text-align: right;
+    color: var(--frame-status-bar-num);
+    font-weight: 700;
+    font-size: 0.85em;
+}
+
+/* ---- 选项 ---- */
+.xml-choices {
+    margin: 1em 0 0.5em;
+}
+.xml-choices-title {
+    font-size: 0.85em;
+    color: var(--frame-choice-title);
+    margin-bottom: 0.5em;
+}
+.xml-choice {
+    display: block;
+    margin: 0.5em 0;
+    padding: 0.7em 1.2em;
+    background: var(--frame-choice-bg);
+    border: 1.5px solid var(--frame-choice-border);
+    border-radius: 14px;
+    font-size: 0.95em;
+    line-height: 1.7;
+    transition: all 0.2s;
+    cursor: pointer;
+    color: var(--frame-text);
+}
+.xml-choice:hover {
+    border-color: var(--frame-choice-hover-border);
+    background: var(--frame-choice-hover-bg);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+    transform: translateX(4px);
+}
+.xml-choice:active {
+    transform: scale(0.97);
+    transition: transform 0.1s;
+}
+.xml-choice.selected {
+    border-color: var(--frame-choice-selected-border);
+    background: var(--frame-choice-selected-bg);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transform: scale(0.97);
+    opacity: 0.85;
+    pointer-events: none;
+}
+.xml-choice.selected .choice-id {
+    color: #fff;
+    background: var(--frame-choice-selected-border);
+    border-radius: 4px;
+    padding: 0 4px;
+}
+.xml-choice .choice-id {
+    font-weight: 700;
+    color: var(--frame-choice-id);
+    margin-right: 0.5em;
+}
+</style>
+</head>
+<body>
+<div id="content"></div>
+
+<script>
+// =============================================================
+// 渲染策略：XML 结构化为唯一主路径。
+// - 内容以 <scene 开头（可去除 ```xml 包裹）→ XML 渲染。
+// - XML 严格解析失败时，走「宽松解析」尽力结构化，绝不掉回 Markdown。
+// - 完全无法识别为 XML 时 → 纯文本兜底（仅转义 + 换行）。
+// 已彻底移除 Markdown / marked.js 链路。
+// =============================================================
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// 属性值转义：在 escapeHtml 基础上额外转义引号，安全放进 HTML 属性
+function escapeAttr(str) {
+    return escapeHtml(str)
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeAndBreak(str) {
+    return escapeHtml(str).replace(/\n/g, '<br>');
+}
+
+// ========== 剥离 LLM 在正文里混入的游离内联 HTML 标签 ==========
+// LLM 偶尔会在 narration/dialogue/choice 文本里吐出 <span>、</span>、<b> 等
+// HTML 残留（常常只有闭标签没有开标签）。我们的文本一律走 escapeHtml 转义，
+// 这些残留就会原样裸露成字面文字。这里在转义前先把它们清掉。
+function stripInlineHtml(str) {
+    return String(str).replace(
+        /<\/?(?:span|b|i|em|strong|u|div|p|font|small|big|mark|sub|sup|br)\b[^>]*>/gi,
+        ''
+    );
+}
+
+// 把多行文本按空行/换行拆成段落
+function escapeAndFormat(text) {
+    var trimmed = stripInlineHtml(String(text)).trim();
+    if (!trimmed) return '';
+    var paragraphs = trimmed.split(/\n\s*\n|\n/);
+    if (paragraphs.length <= 1) return escapeHtml(trimmed);
+    return paragraphs.map(function (p) {
+        return '<p style="margin:0.4em 0">' + escapeHtml(p.trim()) + '</p>';
+    }).join('');
+}
+
+// ========== 去除 ```xml 代码块包裹 + 剥离 <scene> 前导文字 ==========
+// LLM 偶尔会在 <scene> 之前加开场白（如"好的，玩家，游戏开始："），
+// 这里统一清掉代码块包裹，并从第一个 <scene 起截取，丢弃前面的杂质文字。
+function stripCodeFence(text) {
+    var cleaned = String(text).trim();
+    if (cleaned.startsWith('```')) {
+        var lines = cleaned.split('\n');
+        if (lines[0].startsWith('```')) lines.shift();
+        if (lines.length && lines[lines.length - 1].trim() === '```') lines.pop();
+        cleaned = lines.join('\n').trim();
+    }
+    // 从首个 <scene 起截取，剥离前导文字（大小写不敏感）
+    var m = cleaned.match(/<\s*scene[\s>]/i);
+    if (m && m.index > 0) {
+        cleaned = cleaned.slice(m.index).trim();
+    }
+    return cleaned;
+}
+
+// ========== 判断是否为 XML（scene）内容 ==========
+// 只要内容中"含有" <scene 标签即走 XML 路径，不要求严格以它开头——
+// 这样即使 LLM 在前面加了废话，也能正确进入结构化渲染而非裸标签。
+function looksLikeXml(text) {
+    var cleaned = stripCodeFence(text);
+    return /<\s*scene[\s>]/i.test(cleaned);
+}
+
+// ========== 渲染单个 status 卡片内容（接收 status DOM 节点）==========
+function renderStatusNode(statusEl) {
+    var html = '';
+    var title = statusEl.getAttribute('title');
+    if (title) {
+        html += '<div class="xml-status-title">'
+            + '<span class="title-icon">📋</span>'
+            + '<span>' + escapeHtml(title) + '</span>'
+            + '</div>';
+    }
+    var items = statusEl.getElementsByTagName('item');
+    for (var j = 0; j < items.length; j++) {
+        html += renderStatusItem(items[j]);
+    }
+    return '<div class="xml-status">' + html + '</div>';
+}
+
+// ========== 智能检测：是否应该渲染为进度条 ==========
+// 当 label 含有数值相关关键词，且 value 中能提取出数字时，自动渲染为进度条
+function autoDetectBar(label, value) {
+    // 关键词列表：常见 RPG/文游数值属性
+    var barKeywords = /好感|忠诚|服从|声望|体力|生命|魔力|精力|饥饿|口渴|心情|信任|亲密|威望|名声|士气|耐力|理智|san|hp|mp|exp|等级|经验|金币|银两|铜板|怒气|能量|幸运|魅力|智力|力量|敏捷|防御|攻击/i;
+    if (!barKeywords.test(label)) return null;
+    // 尝试从 value 中提取数字：支持 "60/100"、"60"、"+2"、"75%" 等
+    var slashMatch = value.match(/(\d+)\s*[\/／]\s*(\d+)/);
+    if (slashMatch) {
+        return { num: parseFloat(slashMatch[1]), max: parseFloat(slashMatch[2]) };
+    }
+    var pctMatch = value.match(/([\d.]+)\s*%/);
+    if (pctMatch) {
+        return { num: parseFloat(pctMatch[1]), max: 100 };
+    }
+    var numMatch = value.match(/^[+\-]?\s*(\d+(?:\.\d+)?)/);
+    if (numMatch) {
+        var n = parseFloat(numMatch[1]);
+        // 只有数字在合理范围内才渲染为进度条（0~999），避免误判年份等
+        if (n >= 0 && n <= 999) {
+            return { num: n, max: 100 };
+        }
+    }
+    return null;
+}
+
+// 渲染进度条 HTML 的公共函数
+function renderBarHtml(icon, label, value, num, max) {
+    if (isNaN(max) || max <= 0) max = 100;
+    var pct = Math.max(0, Math.min(100, (num / max) * 100));
+    return '<div class="xml-status-bar">'
+        + (icon ? '<span class="item-icon">' + escapeHtml(icon) + '</span>' : '')
+        + '<span class="label">' + escapeHtml(label) + '</span>'
+        + '<span class="bar-track"><span class="bar-fill" style="width:' + pct.toFixed(0) + '%"></span></span>'
+        + '<span class="bar-num">' + escapeHtml(value) + '</span>'
+        + '</div>';
+}
+
+// ========== 渲染单个 item（支持普通 / 进度条 / 自动检测）==========
+function renderStatusItem(itemEl) {
+    var label = itemEl.getAttribute('label') || '';
+    var icon = itemEl.getAttribute('icon') || '';
+    var type = (itemEl.getAttribute('type') || '').toLowerCase();
+    var value = stripInlineHtml(itemEl.textContent || '').trim();
+
+    if (type === 'bar') {
+        var max = parseFloat(itemEl.getAttribute('max') || '100');
+        var num = parseFloat(value.replace(/[^0-9.\-]/g, ''));
+        return renderBarHtml(icon, label, value, isNaN(num) ? 0 : num, max);
+    }
+
+    // 自动检测：label 含关键词 + value 有数字 → 自动渲染为进度条
+    var detected = autoDetectBar(label, value);
+    if (detected) {
+        return renderBarHtml(icon, label, value, detected.num, detected.max);
+    }
+
+    return '<div class="xml-status-item">'
+        + (icon ? '<span class="item-icon">' + escapeHtml(icon) + '</span>' : '')
+        + '<span class="label">' + escapeHtml(label) + '</span>'
+        + '<span class="value">' + escapeHtml(value) + '</span>'
+        + '</div>';
+}
+
+// ========== 严格 XML 解析（DOMParser）==========
+function renderXmlStrict(cleaned) {
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(cleaned, 'text/xml');
+
+    if (doc.querySelector('parsererror')) return null;
+
+    var scene = doc.documentElement;
+    if (!scene || scene.tagName.toLowerCase() !== 'scene') return null;
+
+    var html = '';
+    var children = scene.childNodes;
+    for (var i = 0; i < children.length; i++) {
+        var node = children[i];
+        if (node.nodeType !== 1) continue;
+        var tag = node.tagName.toLowerCase();
+
+        if (tag === 'narration') {
+            html += '<div class="xml-narration">' + escapeAndFormat(node.textContent) + '</div>';
+        } else if (tag === 'dialogue') {
+            var speaker = node.getAttribute('speaker') || '???';
+            html += '<div class="xml-dialogue">'
+                + '<span class="speaker">' + escapeHtml(speaker) + '</span>'
+                + escapeAndFormat(node.textContent)
+                + '</div>';
+        } else if (tag === 'status') {
+            html += renderStatusNode(node);
+        } else if (tag === 'choices') {
+            html += '<div class="xml-choices"><div class="xml-choices-title">请选择：</div>';
+            var choices = node.getElementsByTagName('choice');
+            for (var k = 0; k < choices.length; k++) {
+                var id = choices[k].getAttribute('id') || String.fromCharCode(65 + k);
+                var ctext = stripInlineHtml(choices[k].textContent || '').trim();
+                html += '<div class="xml-choice" role="button" tabindex="0"'
+                    + ' data-choice-id="' + escapeAttr(id) + '"'
+                    + ' data-choice-text="' + escapeAttr(ctext) + '">'
+                    + '<span class="choice-id">' + escapeHtml(id) + '.</span>'
+                    + escapeHtml(ctext)
+                    + '</div>';
+            }
+            html += '</div>';
+        } else {
+            html += '<div class="xml-narration">' + escapeAndFormat(node.textContent) + '</div>';
+        }
+    }
+    return html;
+}
+
+// ========== 宽松 XML 解析（容错：半残 / 未闭合 / 未转义）==========
+// 严格解析失败时使用，逐标签用正则抽取，尽力结构化，不掉回 Markdown。
+function renderXmlLoose(cleaned) {
+    var html = '';
+    var matched = false;
+
+    // 用统一正则按出现顺序提取主要标签块
+    var blockRe = /<(narration|dialogue|status|choices)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+    var m;
+    var lastIndex = 0;
+    var segments = [];
+
+    while ((m = blockRe.exec(cleaned)) !== null) {
+        segments.push({ tag: m[1].toLowerCase(), attrs: m[2] || '', inner: m[3] || '' });
+        lastIndex = blockRe.lastIndex;
+        matched = true;
+    }
+
+    // 处理未闭合的尾部标签（流式途中：<narration>xxx 还没收到 </narration>）
+    var tail = cleaned.slice(lastIndex);
+    var openRe = /<(narration|dialogue|status|choices)\b([^>]*)>([\s\S]*)$/i;
+    var om = openRe.exec(tail);
+    if (om && om[3] && !/<\/(narration|dialogue|status|choices)>/i.test(om[3])) {
+        segments.push({ tag: om[1].toLowerCase(), attrs: om[2] || '', inner: om[3] || '', open: true });
+        matched = true;
+    }
+
+    if (!matched) return null;
+
+    for (var s = 0; s < segments.length; s++) {
+        var seg = segments[s];
+        if (seg.tag === 'narration') {
+            html += '<div class="xml-narration">' + escapeAndFormat(decodeEntities(seg.inner)) + '</div>';
+        } else if (seg.tag === 'dialogue') {
+            var sp = attrOf(seg.attrs, 'speaker') || '???';
+            html += '<div class="xml-dialogue">'
+                + '<span class="speaker">' + escapeHtml(sp) + '</span>'
+                + escapeAndFormat(decodeEntities(seg.inner))
+                + '</div>';
+        } else if (seg.tag === 'status') {
+            html += renderStatusLoose(seg.attrs, seg.inner);
+        } else if (seg.tag === 'choices') {
+            html += '<div class="xml-choices"><div class="xml-choices-title">请选择：</div>';
+            var cRe = /<choice\b([^>]*)>([\s\S]*?)(?:<\/choice>|$)/gi;
+            var cm, idx = 0;
+            while ((cm = cRe.exec(seg.inner)) !== null) {
+                var cid = attrOf(cm[1], 'id') || String.fromCharCode(65 + idx);
+                var ctext2 = stripInlineHtml(decodeEntities((cm[2] || '').trim())).trim();
+                html += '<div class="xml-choice" role="button" tabindex="0"'
+                    + ' data-choice-id="' + escapeAttr(cid) + '"'
+                    + ' data-choice-text="' + escapeAttr(ctext2) + '">'
+                    + '<span class="choice-id">' + escapeHtml(cid) + '.</span>'
+                    + escapeHtml(ctext2)
+                    + '</div>';
+                idx++;
+            }
+            html += '</div>';
+        }
+    }
+    return html;
+}
+
+// 宽松模式下解析 status 块
+function renderStatusLoose(attrs, inner) {
+    var html = '';
+    var title = attrOf(attrs, 'title');
+    if (title) {
+        html += '<div class="xml-status-title">'
+            + '<span class="title-icon">📋</span>'
+            + '<span>' + escapeHtml(title) + '</span>'
+            + '</div>';
+    }
+    var itemRe = /<item\b([^>]*)>([\s\S]*?)(?:<\/item>|$)/gi;
+    var im;
+    while ((im = itemRe.exec(inner)) !== null) {
+        var iattrs = im[1] || '';
+        var label = attrOf(iattrs, 'label') || '';
+        var icon = attrOf(iattrs, 'icon') || '';
+        var type = (attrOf(iattrs, 'type') || '').toLowerCase();
+        var value = stripInlineHtml(decodeEntities((im[2] || '').trim())).trim();
+
+        if (type === 'bar') {
+            var max = parseFloat(attrOf(iattrs, 'max') || '100');
+            var num = parseFloat(value.replace(/[^0-9.\-]/g, ''));
+            html += renderBarHtml(icon, label, value, isNaN(num) ? 0 : num, max);
+        } else {
+            // 自动检测：label 含关键词 + value 有数字 → 自动渲染为进度条
+            var detected = autoDetectBar(label, value);
+            if (detected) {
+                html += renderBarHtml(icon, label, value, detected.num, detected.max);
+            } else {
+                html += '<div class="xml-status-item">'
+                    + (icon ? '<span class="item-icon">' + escapeHtml(icon) + '</span>' : '')
+                    + '<span class="label">' + escapeHtml(label) + '</span>'
+                    + '<span class="value">' + escapeHtml(value) + '</span>'
+                    + '</div>';
+            }
+        }
+    }
+    return '<div class="xml-status">' + html + '</div>';
+}
+
+// 从属性字符串中取某个属性值
+function attrOf(attrStr, name) {
+    if (!attrStr) return '';
+    var re = new RegExp(name + '\\s*=\\s*"([^"]*)"', 'i');
+    var m = re.exec(attrStr);
+    if (m) return m[1];
+    re = new RegExp(name + "\\s*=\\s*'([^']*)'", 'i');
+    m = re.exec(attrStr);
+    return m ? m[1] : '';
+}
+
+// 反转义已编码实体（宽松模式拿到的是原始字符串，可能含 &amp; 等）
+function decodeEntities(str) {
+    return String(str)
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&amp;/g, '&');
+}
+
+// ========== 渲染主入口 ==========
+function renderContent(text) {
+    var raw = String(text || '');
+    var container = document.getElementById('content');
+
+    if (looksLikeXml(raw)) {
+        var cleaned = stripCodeFence(raw);
+        var html = renderXmlStrict(cleaned);
+        if (html === null) {
+            // 严格失败 → 宽松容错解析
+            html = renderXmlLoose(cleaned);
+        }
+        if (html !== null && html !== '') {
+            container.innerHTML = html;
+            notifyHeight();
+            return;
+        }
+        // 宽松也失败（极少见）→ 落到纯文本兜底
+    }
+
+    // 纯文本兜底：仅转义 + 换行，不做任何 Markdown 解析
+    container.innerHTML = '<div class="plain-text">' + escapeAndBreak(raw.trim()) + '</div>';
+    notifyHeight();
+}
+
+// ========== 高度同步 ==========
+function notifyHeight() {
+    var h = document.documentElement.scrollHeight;
+    window.parent.postMessage({ type: 'md-frame-height', height: h }, '*');
+}
+
+var observer = new MutationObserver(function () {
+    setTimeout(notifyHeight, 50);
+});
+observer.observe(document.getElementById('content'), { childList: true, subtree: true });
+
+document.addEventListener('load', function (e) {
+    if (e.target.tagName === 'IMG') notifyHeight();
+}, true);
+
+// ========== 消息监听 ==========
+window.addEventListener('message', function (e) {
+    var msg = e.data;
+    if (!msg || !msg.type) return;
+
+    // 兼容旧的 md-init（已无需加载 marked），忽略即可
+    if (msg.type === 'md-init') return;
+
+    if (msg.type === 'theme-change') {
+        document.documentElement.setAttribute('data-theme', msg.theme || 'lavender');
+        return;
+    }
+
+    if (msg.type === 'md-update') {
+        renderContent(msg.text || '');
+    }
+});
+
+// ========== 选项点击：上报给父页面直接发送 ==========
+// 用事件委托绑在 #content 上，innerHTML 重渲染后依然有效。
+function emitChoice(el) {
+    if (!el || el.classList.contains('selected')) return;
+    // 视觉反馈：标记选中状态
+    el.classList.add('selected');
+    // 同组其他选项变灰（禁用）
+    var siblings = el.parentElement ? el.parentElement.querySelectorAll('.xml-choice') : [];
+    for (var i = 0; i < siblings.length; i++) {
+        if (siblings[i] !== el) {
+            siblings[i].style.opacity = '0.5';
+            siblings[i].style.pointerEvents = 'none';
+        }
+    }
+    var id = el.getAttribute('data-choice-id') || '';
+    var text = el.getAttribute('data-choice-text') || '';
+    // 短暂延迟后上报，让玩家看到选中效果
+    setTimeout(function() {
+        window.parent.postMessage({ type: 'md-choice', id: id, text: text }, '*');
+    }, 150);
+}
+var contentEl = document.getElementById('content');
+contentEl.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('.xml-choice') : null;
+    if (el) emitChoice(el);
+});
+contentEl.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var el = e.target.closest ? e.target.closest('.xml-choice') : null;
+    if (el) { e.preventDefault(); emitChoice(el); }
+});
+
+// 通知父页面 iframe 已就绪
+window.parent.postMessage({ type: 'md-frame-ready' }, '*');
+</script>
+</body>
+</html>
